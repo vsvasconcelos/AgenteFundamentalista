@@ -72,12 +72,7 @@ A interface será aberta em `http://127.0.0.1:8501`.
 2. Clique em **“Iniciar Triagem”**.
 3. Acompanhe os logs dos quatro agentes (Triador → Auditor → Investigador → CIO).
 4. O **Ranking Final** será exibido em Markdown logo abaixo.
-
----
-
-**Pronto!** Agora a aplicação está pronta para ser utilizada e apresentada no seu portfólio.
-
-
 ----
+
 # Exemplo de relatório de saída
 O arquio [relatorio_b3_bancos_bancos](relatorio_b3_bancos_bancos.md) ilustra um exemplo da saída do sistema para o caso de bancos.
