@@ -1,7 +1,11 @@
-# B3 Fundamentalist Screener – Resumo para Portfólio
+# B3 Fundamentalist Screener
+### Engenharia Agêntica
+
+![telainicial](TelaSistema.png)
+
 
 ## Visão geral
-Plataforma web premium (dark‑mode) que automatiza todo o fluxo de pesquisa fundamentalista de ações listadas na B3. A partir da seleção de **setor** e **subsetor**, quatro agentes de IA (CrewAI) realizam:
+Plataforma web que automatiza todo o fluxo de pesquisa fundamentalista de ações listadas na B3. A partir da seleção de **setor** e **subsetor**, quatro agentes de IA (CrewAI) realizam:
 
 1. **Triagem quantitativa** – coleta dados reais de preço/lucro, ROE, Dividend Yield etc. via *fundamentus.com.br* e devolve os **5 melhores tickers**.
 2. **Auditoria temporal** – verifica a consistência histórica do ROE e o crescimento de receita nos últimos 5 anos.
@@ -48,11 +52,11 @@ Inclua screenshots da interface (tela de seleção de setor, logs de execução 
 
 ---
 
-**Pronto!** Este arquivo `resumo.md` pode ser adicionado ao repositório e exibido no seu portfólio como a descrição oficial do projeto.
 ## Executando a aplicação
 
 ### 1️⃣ Preparar o ambiente
 ```bash
+# Acesse a pasta do projeto, exemplo:
 cd /home/vsvasconcelos/agents/fundamentalista
 python3 -m venv .venv            # cria o virtual‑env
 source .venv/bin/activate        # ativa
@@ -82,3 +86,8 @@ A interface será aberta em `http://127.0.0.1:8501`.
 ---
 
 **Pronto!** Agora a aplicação está pronta para ser utilizada e apresentada no seu portfólio.
+
+
+----
+# Exemplo de relatório de saída
+O arquivo (Relatório B3 Bancos)[relatorio_b3_bancos_bancos.md] ilustra um exemplo da saída do sistema para o caso de bancos.
