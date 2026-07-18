@@ -42,16 +42,6 @@ Tudo isso ocorre com **uma única interação** na interface Streamlit, exibindo
 
 ---
 
-## Como apresentar no portfólio
-> **B3 Fundamentalist Screener** – *Aplicação web de análise quantitativa e qualitativa de ações B3*
-> - **Objetivo:** automatizar a triagem, auditoria histórica e avaliação de governança para gerar um ranking de investimento pronto para comitês.
-> - **Tecnologias:** Streamlit, CSS customizado (dark‑mode), CrewAI, LangChain‑OpenAI + OpenRouter (Gemini 2.5 Flash), pacote `fundamentus`, virtualenv, Python 3.14.
-> - **Resultados:** pipeline completo em poucos cliques, UI premium e relatório em Markdown entregando insights acionáveis.
-
-Inclua screenshots da interface (tela de seleção de setor, logs de execução e o relatório final) para reforçar o aspecto visual premium.
-
----
-
 ## Executando a aplicação
 
 ### 1️⃣ Preparar o ambiente
@@ -90,4 +80,4 @@ A interface será aberta em `http://127.0.0.1:8501`.
 
 ----
 # Exemplo de relatório de saída
-O arquivo (Relatório B3 Bancos)[relatorio_b3_bancos_bancos.md] ilustra um exemplo da saída do sistema para o caso de bancos.
+O este (arquivo)[relatorio_b3_bancos_bancos.md] ilustra um exemplo da saída do sistema para o caso de bancos.
