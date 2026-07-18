@@ -2,7 +2,7 @@
 ### Engenharia Agêntica
 
 ![telainicial](TelaSistema.png)
-
+Tela inicial
 
 ## Visão geral
 Plataforma web que automatiza todo o fluxo de pesquisa fundamentalista de ações listadas na B3. A partir da seleção de **setor** e **subsetor**, quatro agentes de IA (CrewAI) realizam:
@@ -80,4 +80,4 @@ A interface será aberta em `http://127.0.0.1:8501`.
 
 ----
 # Exemplo de relatório de saída
-O este (arquivo)[relatorio_b3_bancos_bancos.md] ilustra um exemplo da saída do sistema para o caso de bancos.
+O arquio [relatorio_b3_bancos_bancos](relatorio_b3_bancos_bancos.md) ilustra um exemplo da saída do sistema para o caso de bancos.
