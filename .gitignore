@@ -1,0 +1,5 @@
+keys.txt
+openrouter-key.txt
+*.sqlite
+__pycache__/
+.venv/

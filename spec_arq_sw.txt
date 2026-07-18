@@ -1,0 +1,171 @@
+Atue como um Arquiteto de IA e Engenheiro de Software Sênior especializado em CrewAI, Streamlit e Engenharia Financeira (Value Investing).
+
+Objetivo: Desenvolver uma aplicação completa em Python utilizando o framework CrewAI e Streamlit para automatizar o processo de triagem e análise qualitativa de ações da B3, mimetizando uma equipe de analistas de equity research.
+
+1. Infraestrutura e Inicialização
+Variáveis de Ambiente: O script deve ler os arquivos locais keys.txt e openrouter-key.txt para extrair e configurar as chaves OPENROUTER_API_KEY e SERPER_API_KEY, respectivamente.
+
+LLM Setup: Inicialize o modelo utilizando a biblioteca do OpenRouter (via langchain_openai.ChatOpenAI ou a classe nativa do CrewAI).
+
+Ferramentas (Tools): Configure o SerperDevTool para buscas na internet. Instrua os agentes a usarem operadores de busca avançados (como site:fundamentus.com.br e site:investidor10.com.br) para garantir que os dados venham das fontes corretas.
+
+2. Mapeamento de Dados da Interface (Dicionário de Setores)
+O front-end em Streamlit deve carregar e obrigar a seleção de um Setor e, dinamicamente, permitir a seleção opcional de um ou mais Segmentos (Subsetores) baseado nesta estrutura exata de dados, que contempla (código - setor):
+01 – Agropecuária (Ex: Agro3, SLC Agrícola)
+02 – Água e Saneamento (Ex: Sabesp, Sanepar, Copasa)
+03 – Alimentos (Ex: M. Dias Branco, Camil)
+04 – Bebidas (Ex: Ambev)
+05 – Automóveis e Motocicletas / Autopeças (Ex: Mahle-Metal Leve, Iochpe-Maxion)
+06 – Bancos (Ex: Itaú, Bradesco, Banco do Brasil, Santander)
+07 – Comércio (Geral, Varejo e Atacado)
+08 – Construção Civil e Engenharia (Ex: Cyrela, MRV, EzTec)
+09 – Construção e Engenharia / Outros
+10 – Diversos (Holding e Empresas Multissetoriais)
+11 – Embalagens (Ex: Klabin, Irani)
+12 – Educação / Serviços e Aluguer de Carros (Ex: Cogna, Yduqs, Localiza, Movida)
+13 – Equipamentos (Eletroeletrónicos e Industriais / Ex: WEG)
+14 – Energia Elétrica (Ex: Eletrobras, Engie, Cemig, CPFL)
+15 – Exploração de Bens / Imóveis e Exploração de Centros Comerciais
+16 – Centros Comerciais (Shopping Centers) e Exploração Imobiliária (Ex: Multiplan, Aliansce Sonae, Iguatemi)
+17 – Financeiros Diversos (Ex: B3, Cielo, BB Seguridade)
+18 – Fios e Tecidos / Vestuário
+19 – Gás e Distribuição de Combustíveis
+20 – Holding Diversificadas
+21 – Hotelaria e Lazer (Ex: CVC, Schultz)
+22 – Material de Transporte / Material Aeronáutico (Ex: Embraer)
+23 – Madeira e Papel (Ex: Suzano)
+24 – Máquinas e Equipamentos
+25 – Medicamentos e Produtos Médicos
+26 – Média (Comunicação e Entretenimento)
+27 – Mineração (Ex: Vale, CSN Mineração, Aura Minerals)
+28 – Outros
+29 – Outros Títulos
+30 – Petróleo, Gás e Biocombustíveis (Ex: Petrobras, Prio, Ultrapar)
+31 – Previdência e Seguros (Ex: Porto Seguro, Caixa Seguridade)
+32 – Produtos de Uso Pessoal e de Limpeza (Ex: Natura)
+33 – Programas e Serviços / Tecnologia da Informação (Ex: Totvs, Locaweb)
+34 – Químicos (Ex: Braskem, Unipar)
+35 – Securitizadoras de Recebíveis
+36 – Serviços Médicos, Hospitalares, Análises e Diagnósticos (Ex: Fleury, Rede D'Or)
+37 – Serviços Diversos
+38 – Siderurgia e Metalurgia (Ex: Gerdau, Usiminas, CSN)
+39 – Tecidos, Vestuário e Calçados (Ex: Lojas Renner, Alpargatas, Arezzo)
+40 – Telecomunicações (Ex: Vivo/Telefonica, Tim)
+41 – Transporte (Logística, Concessionárias de Rodovias e Aviação / Ex: CCR, EcoRodovias, Azul)
+42 – Utilidades Domésticas (Ex: Whirlpool)
+
+E de Segmentos por setores:
+Setor: Agro, Alimentos e Bebidas
+01 ou 53 – Açúcar e Álcool / Agricultura (Ex: São Martinho, Jalles Machado)
+03 – Alimentos Diversos (Ex: M. Dias Branco, Camil, Josapar)
+04 – Bebidas (Ex: Ambev)
+54 – Carnes e Derivados / Frigoríficos (Ex: JBS, BRF, Marfrig, Minerva)
+
+Setor: Financeiro e Seguros
+06 – Bancos (Ex: Itaú, Bradesco, BB, Santander, Banrisul)
+17 – Serviços Financeiros Diversos (Ex: B3, Cielo, WIZ)
+20 – Holdings Diversificadas (Ex: Itaúsa, Simpar)
+31 – Seguradoras e Corretoras (Ex: Porto Seguro, BB Seguridade, Caixa Seguridade)
+35 – Securitizadoras de Recebíveis
+
+Setor: Energia, Água e Saneamento (Utilidade Pública)
+02 – Água e Saneamento (Ex: Sabesp, Sanepar, Copasa)
+14 – Energia Elétrica (Geral - Empresas integradas como Eletrobras, Cemig)
+70 – Geração de Energia Elétrica (Ex: Engie, Auren)
+71 – Transmissão de Energia Elétrica (Ex: Taesa, ISA CTEEP)
+72 – Distribuição de Energia Elétrica (Ex: CPFL, Equatorial)
+19 – Gás (Ex: Comgás)
+
+Setor|: Construção, Siderurgia e Materiais Básicos
+08 – Incorporações / Construção Civil (Ex: Cyrela, MRV, EzTec, Even)
+11 – Embalagens (Ex: Klabin, Irani)
+23 – Papel e Celulose (Ex: Suzano)
+27 – Mineração (Ex: Vale, CSN Mineração)
+34 – Petroquímicos e Químicos (Ex: Braskem, Unipar)
+38 – Siderurgia (Ex: Gerdau, Usiminas, CSN)
+
+Setor: Comércio, Vestuário e Consumo (Varejo/Atacado)
+07 – Comércio / Varejo Geral (Ex: Magazine Luiza, Casas Bahia)
+32 – Produtos de Uso Pessoal / Cosméticos (Ex: Natura)
+39 – Tecidos, Vestuário e Calçados (Ex: Lojas Renner, Alpargatas, Arezzo, Grupo Soma)
+57 – Alimentos / Supermercados e Atacado (Ex: Carrefour, Assaí, Pão de Açúcar)
+62 – Medicamentos e Farmácias (Ex: RaiaDrogasil, Panvel)
+
+Setor: Saúde, Educação e Serviços
+12 – Educação (Ex: Cogna, Yduqs, Ser Educacional)
+36 – Serviços Médicos, Hospitalares e Análises (Ex: Fleury, Rede D'Or, Mater Dei)
+77 – Planos de Saúde e Seguros-Saúde (Ex: Hapvida, SulAmérica)
+
+Setor: Logística, Transporte e Petróleo
+30 – Exploração, Refino e Distribuição de Petróleo (Ex: Petrobras, Prio, PetroReconcavo)
+41 – Transporte / Logística (Ex: Rumo, JSL)
+82 – Concessionárias de Rodovias (Ex: CCR, EcoRodovias)
+83 – Transporte Aéreo (Ex: Azul, Gol)
+85 – Aluguel de Carros e Gestão de Frotas (Ex: Localiza, Movida, Vamos)
+
+Setor: Tecnologia e Telecomunicações
+33 – Programas e Serviços de TI (Ex: Totvs, Locaweb)
+40 – Telecomunicações (Ex: Vivo/Telefônica, Tim)
+
+3. Arquitetura da Crew (Agentes e Tarefas)
+Agente 1: O Triador Fundamentalista (Screener)
+
+Role: Analista de Triagem Quantitativa B3
+
+Goal: Filtrar o setor/subsetor escolhido e encontrar os 5 melhores ativos com base em eficiência e múltiplos de preço.
+Dica: Para realizar os filtros utilizar as urls:
+- https://fundamentus.com.br/resultado.php?setor="Código_do_setor"
+- https://fundamentus.com.br/resultado.php?segmento="Código_do_segmento"
+Onde os códigos de setor e segmento são os apresentados na estrutura de dados acima.
+
+Task: Simular a triagem de dados no portal fundamentus.com.br para o setor/segmento enviado pelo usuário. Aplicar o seguinte algoritmo estrito:
+
+Descartar imediatamente empresas com indicador P/L (Preço/Lucro) negativo ou zerado.
+
+Ordenar as empresas restantes pelo indicador ROE (Return on Equity) de forma decrescente (do maior para o menor).
+
+Cruzar e ponderar com o Dividend Yield (DY), priorizando os maiores valores positivos.
+
+Retornar uma lista limpa com exatamente os Top 5 Tickers resultantes.
+
+Agente 2: O Auditor Temporal (Análise Histórica)
+
+Role: Auditor de Consistência Financeira
+
+Goal: Validar se a rentabilidade das empresas do Agente 1 é recorrente ou um pico sazonal.
+
+Task: Receber os top 5 tickers do Agente 1. Buscar no no portal fundamentus.com.br o histórico de gráficos temporais do ROE de cada uma deles. Analisar a consistência dos Indicadores Qualitativos nos últimos trimestres e anos. Filtrar e reordenar a lista, mantendo apenas as empresas que apresentem um ROE constante ou crescente ao longo do tempo.
+
+Agente 3: O Investigador Governamental e de Governança
+
+Role: Especialista em Governança Corporativa e Estrutura Acionária
+
+Goal: Avaliar os riscos societários e o alinhamento de interesses dos controladores das empresas validadas pelo Agente 2.
+
+Task: Investigar a composição acionária das empresas remanescentes na internet (simulando no portal fundamentus.com.br). Mapear e responder de forma ultra objetiva para cada ticker:
+
+Qual é o percentual do Free Float ON (Ações Ordinárias em circulação)? (Validar se é alto).
+
+Existe algum acionista majoritário com concentração excessiva de controle?
+
+Existem sócios governamentais ou economia mista (risco político/estatal)?
+
+Agente 4: O Comitê de Alocação (CIO)
+
+Role: Diretor de Investimentos (Chief Investment Officer)
+
+Goal: Consolidar os dados quantitativos, históricos e de governança em um relatório executivo final.
+
+Task: Reunir as descobertas dos agentes 1, 2 e 3. Montar um Ranking final das empresas mais promissoras para investimento, justificando a posição de cada uma com base no equilíbrio entre ROE estável, Dividend Yield robusto, Free Float alto e baixo risco de interferência estatal.
+
+4. Requisitos de Interface (Streamlit UI/UX)
+Visual: Design minimalista e profissional, com tipografia limpa e paleta de cores voltada para o mercado financeiro (tons apropriados para usuários com dificuldades visuais).
+
+Componentes de Entrada: Um st.selectbox obrigatório para o Setor. Ao ser selecionado, um segundo componente (st.selectbox ou st.multiselect) opcional deve aparecer renderizando os segmentos/subsetores mapeados no dicionário de dados.
+
+Feedback de Execução (UX Fantástico): Utilize o componente st.status() do Streamlit para encapsular a execução da Crew, exibindo dinamicamente logs de progresso customizados para o usuário (ex: "Agente 1: Aplicando filtros fundamentalistas no Fundamentus...", "Agente 2: Analisando consistência histórica do ROE no portal ...").
+
+Componentes de Saída: Exibir o ranking do Agente 4 usando tabelas interativas (st.dataframe) e detalhar a governança de cada empresa dentro de blocos expansíveis (st.expander) formatados em Markdown limpo.
+
+Forneça o código Python completo, modular, com tratamento de erros para arquivos e chamadas de API, e com todos os comentários explicativos em português.
+
