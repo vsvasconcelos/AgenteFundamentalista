@@ -1,6 +1,9 @@
 # B3 Fundamentalist Screener
 ### Engenharia Agêntica
 
+---
+Projeto desenvolvido para o curso: I2A2 - Agentic AI: uma introdução  
+
 ![telainicial](TelaSistema.png)
 Tela inicial
 
