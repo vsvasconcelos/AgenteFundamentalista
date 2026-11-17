@@ -14,10 +14,10 @@ from tools import FundamentusScreenerTool, AuditorHistoricoTool, InvestigadorGov
 
 
 # -------------------------------------------------------------
-# 1. Carregamento de Credenciais e Inicialização do LLM
+# 1. Carregamento de Credenciais e Inicialização do LLM (Vertex AI)
 # -------------------------------------------------------------
-serper_api_key, openrouter_api_key = carregar_chaves()
-llm = inicializar_llm(openrouter_api_key)
+serper_api_key, gcp_project_id = carregar_chaves()
+llm = inicializar_llm(project_id=gcp_project_id)
 
 
 # -------------------------------------------------------------

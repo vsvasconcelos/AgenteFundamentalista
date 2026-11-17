@@ -13,6 +13,7 @@ onde os códigos são os definidos na especificação de arquitetura.
 """
 
 import warnings
+from typing import ClassVar
 import pandas as pd
 import fundamentus as fund
 from langchain.tools import BaseTool
@@ -367,7 +368,7 @@ class InvestigadorGovernancaTool(BaseTool):
     )
 
     # Lista de empresas com participação estatal relevante
-    ESTATAIS = [
+    ESTATAIS: ClassVar[list[str]] = [
         "petrobras", "banco do brasil", "caixa", "eletrobras",
         "cemig", "copel", "sanepar", "sabesp", "banrisul",
         "eletrosul", "chesf", "furnas", "copasa", "transmissao paulista",

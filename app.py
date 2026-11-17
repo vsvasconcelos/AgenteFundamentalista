@@ -284,10 +284,11 @@ try:
 except Exception as e:
     st.error(
         f"### ⚠️ Falha ao Inicializar o Sistema\n\n"
-        f"Não foi possível carregar os módulos de IA ou as credenciais.\n\n"
+        f"Não foi possível carregar os módulos de IA ou as credenciais da GCP/Vertex AI.\n\n"
         f"**Verifique:**\n"
-        f"- Arquivo `keys.txt` com SERPER_API_KEY (linha 1) e OPENROUTER_API_KEY (linha 2)\n"
-        f"- Ou `openrouter-key.txt` com a chave OpenRouter separada\n\n"
+        f"- Credenciais do Google Cloud via Application Default Credentials (ADC):\n"
+        f"  `gcloud auth application-default login`\n"
+        f"- Ou variável de ambiente `GCP_PROJECT_ID` e `GOOGLE_APPLICATION_CREDENTIALS`\n\n"
         f"**Erro:** `{e}`"
     )
 

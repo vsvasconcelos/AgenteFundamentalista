@@ -90,6 +90,7 @@ def criar_tarefas(setor, segmento, triador, auditor, investigador, cio):
             "Lista reordenada dos tickers aprovados na auditoria histórica, com avaliação "
             "da consistência do ROE e indicação de quais avançam para análise de governança."
         ),
+        context=[tarefa_triagem],
         agent=auditor,
     )
 
@@ -118,6 +119,7 @@ def criar_tarefas(setor, segmento, triador, auditor, investigador, cio):
             "Free Float Estimado, Nível de Governança B3, Risco Estatal e "
             "análise de concentração acionária."
         ),
+        context=[tarefa_auditoria],
         agent=investigador,
     )
 
@@ -128,30 +130,41 @@ def criar_tarefas(setor, segmento, triador, auditor, investigador, cio):
         description=(
             f"Consolide todas as análises anteriores (triagem fundamentalista, auditoria "
             f"histórica e investigação de governança) para o {escopo} e produza o "
-            f"Ranking Final de Investimento.\n\n"
+            f"Relatório Executivo Final com Ranking de Investimento completo.\n\n"
             "**Estrutura obrigatória do relatório em Markdown premium:**\n\n"
             "## 📊 Ranking Final — Top Ações para Investimento\n"
-            "Crie uma tabela de ranking com colunas:\n"
-            "| # | Ticker | ROE (%) | DY (%) | Tendência ROE | Free Float | Risco Estatal | Score |\n\n"
-            "## 📋 Justificativa por Empresa\n"
-            "Para cada empresa no ranking, escreva um parágrafo executivo justificando "
-            "a posição com base no equilíbrio entre:\n"
-            "  - ROE estável e crescente (peso maior)\n"
-            "  - Dividend Yield robusto e consistente\n"
-            "  - Free Float alto (boa liquidez e dispersão acionária)\n"
-            "  - Baixo risco de interferência estatal\n\n"
+            "Apresente a tabela com todas as empresas classificadas (que avançaram nas etapas anteriores):\n"
+            "| # | Ticker | ROE (%) | DY (%) | Tendência ROE | Free Float (%) | Risco Estatal | Score |\n\n"
+            "**Como o Score foi calculado**\n"
+            "Descreva de forma concisa os 4 critérios ponderados (ROE 40%, Dividend Yield 20%, Free Float 20%, Risco Estatal 20%) "
+            "e como o score final (0 a 100) foi obtido.\n\n"
+            "---\n\n"
+            "## 📋 Justificativa por Empresa\n\n"
+            "**REGRA MANDATÓRIA:** Você DEVE incluir a análise detalhada para TODAS as empresas listadas na tabela do ranking acima. "
+            "É TERMINANTEMENTE PROIBIDO omitir qualquer empresa ou interromper a geração antes de cobrir todos os tickers do ranking.\n\n"
+            "Para CADA empresa do ranking, siga estritamente o modelo estruturado abaixo:\n\n"
+            "### **[TICKER]** – [Nº]º lugar (Score [SCORE])\n"
+            "- **ROE**: [análise numérica de ROE e tendência recente]\n"
+            "- **Dividend Yield**: [DY atual e histórico de pagamentos]\n"
+            "- **Free Float**: [percentual de float e nível de concentração/liquidez]\n"
+            "- **Governança**: [nível de listagem na B3 como Novo Mercado, N2, N1 ou Tradicional]\n"
+            "- **Risco Estatal**: [análise de risco político ou ausência de controle estatal]\n"
+            "- **Auditoria**: [síntese da estabilidade histórica avaliada pela auditoria]\n"
+            "- **Conclusão**: [tese sintética de alocação específica para o ativo]\n\n"
+            "---\n\n"
             "## 🎯 Conclusão e Recomendação do Comitê\n"
-            "Redija um parágrafo final com a perspectiva geral do setor analisado "
-            "e as empresas mais recomendadas para alocação de longo prazo.\n\n"
-            "Use Markdown premium para formatação. Tom executivo, sóbrio e objetivo.\n"
-            "⚠️ Inclua ao final: 'Este relatório é gerado por IA e não constitui "
-            "recomendação de investimento. Consulte um profissional certificado.'"
+            "1. Panorama geral e perspectivas para o setor analisado.\n"
+            "2. Comparativo sintético dos diferenciais entre os ativos avaliados.\n"
+            "3. **Recomendação de alocação (longo prazo):** Sugestão de pesos percentuais na carteira para CADA empresa do ranking (ex: X% no 1º lugar, Y% no 2º lugar, etc.).\n\n"
+            "---\n\n"
+            "*Este relatório é gerado por IA e não constitui recomendação de investimento. Consulte um profissional certificado.*"
         ),
         expected_output=(
-            "Relatório executivo completo em Markdown com: tabela de ranking final com "
-            "score ponderado, justificativas por empresa e conclusão do Comitê de Investimentos, "
-            "seguido do disclaimer obrigatório."
+            "Relatório executivo completo em Markdown contendo: tabela de ranking final com scores ponderados, "
+            "metodologia do Score, justificativa estruturada em bullet points para TODAS as empresas do ranking "
+            "(sem exceção ou corte), conclusão com recomendação percentual de alocação por ativo e disclaimer legal."
         ),
+        context=[tarefa_triagem, tarefa_auditoria, tarefa_governanca],
         agent=cio,
     )
 

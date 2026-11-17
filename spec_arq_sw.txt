@@ -3,109 +3,230 @@ Atue como um Arquiteto de IA e Engenheiro de Software Sênior especializado em C
 Objetivo: Desenvolver uma aplicação completa em Python utilizando o framework CrewAI e Streamlit para automatizar o processo de triagem e análise qualitativa de ações da B3, mimetizando uma equipe de analistas de equity research.
 
 1. Infraestrutura e Inicialização
-Variáveis de Ambiente: O script deve ler os arquivos locais keys.txt e openrouter-key.txt para extrair e configurar as chaves OPENROUTER_API_KEY e SERPER_API_KEY, respectivamente.
+Autenticação e Credenciais: O sistema utiliza o Google Cloud Application Default Credentials (ADC) para autenticação segura no GCP/Vertex AI (`gcloud auth application-default login`), com suporte opcional a `GCP_PROJECT_ID` e `GCP_LOCATION`. O arquivo keys.txt é opcional para credenciais complementares.
 
-LLM Setup: Inicialize o modelo utilizando a biblioteca do OpenRouter (via langchain_openai.ChatOpenAI ou a classe nativa do CrewAI).
+LLM Setup: Inicialize o modelo utilizando o Google Cloud Vertex AI (via endpoint compatível com OpenAI do Vertex AI em conjunto com langchain_openai.ChatOpenAI), utilizando o modelo `google/gemini-3-flash-preview` para consumir os créditos do projeto GCP.
 
-Ferramentas (Tools): Configure o SerperDevTool para buscas na internet. Instrua os agentes a usarem operadores de busca avançados (como site:fundamentus.com.br e site:investidor10.com.br) para garantir que os dados venham das fontes corretas.
+Ferramentas (Tools): As ferramentas de triagem e dados fundamentalistas consultam de forma estruturada e direta o portal fundamentus.com.br via lib fundamentus/scraping customizado, garantindo que os dados venham das fontes corretas sem alucinações.
 
-2. Mapeamento de Dados da Interface (Dicionário de Setores)
-O front-end em Streamlit deve carregar e obrigar a seleção de um Setor e, dinamicamente, permitir a seleção opcional de um ou mais Segmentos (Subsetores) baseado nesta estrutura exata de dados, que contempla (código - setor):
-01 – Agropecuária (Ex: Agro3, SLC Agrícola)
-02 – Água e Saneamento (Ex: Sabesp, Sanepar, Copasa)
-03 – Alimentos (Ex: M. Dias Branco, Camil)
-04 – Bebidas (Ex: Ambev)
-05 – Automóveis e Motocicletas / Autopeças (Ex: Mahle-Metal Leve, Iochpe-Maxion)
-06 – Bancos (Ex: Itaú, Bradesco, Banco do Brasil, Santander)
-07 – Comércio (Geral, Varejo e Atacado)
-08 – Construção Civil e Engenharia (Ex: Cyrela, MRV, EzTec)
-09 – Construção e Engenharia / Outros
-10 – Diversos (Holding e Empresas Multissetoriais)
-11 – Embalagens (Ex: Klabin, Irani)
-12 – Educação / Serviços e Aluguer de Carros (Ex: Cogna, Yduqs, Localiza, Movida)
-13 – Equipamentos (Eletroeletrónicos e Industriais / Ex: WEG)
-14 – Energia Elétrica (Ex: Eletrobras, Engie, Cemig, CPFL)
-15 – Exploração de Bens / Imóveis e Exploração de Centros Comerciais
-16 – Centros Comerciais (Shopping Centers) e Exploração Imobiliária (Ex: Multiplan, Aliansce Sonae, Iguatemi)
-17 – Financeiros Diversos (Ex: B3, Cielo, BB Seguridade)
-18 – Fios e Tecidos / Vestuário
-19 – Gás e Distribuição de Combustíveis
-20 – Holding Diversificadas
-21 – Hotelaria e Lazer (Ex: CVC, Schultz)
-22 – Material de Transporte / Material Aeronáutico (Ex: Embraer)
-23 – Madeira e Papel (Ex: Suzano)
-24 – Máquinas e Equipamentos
-25 – Medicamentos e Produtos Médicos
-26 – Média (Comunicação e Entretenimento)
-27 – Mineração (Ex: Vale, CSN Mineração, Aura Minerals)
-28 – Outros
+2. Mapeamento de Dados da Interface (Dicionário de Setores e Segmentos - Fundamentus)
+O front-end em Streamlit deve carregar a seleção de um Setor (via parâmetro de URL resultado.php?setor=<código>) e, dinamicamente, permitir a seleção opcional do Segmento / Subsetor (via parâmetro de URL resultado.php?segmento=<código>) mapeado conforme a taxonomia e códigos reais do portal fundamentus.com.br:
+
+Setores cadastrados no Fundamentus (código – setor):
+01 – Agropecuária (Ex: SLCE3, AGRO3)
+02 – Água e Saneamento (Ex: SBSP3, CSMG3, SAPR4)
+03 – Alimentos Processados (Ex: MDIA3, BEEF3, SMTO3)
+04 – Serv.Méd.Hospit. Análises e Diagnósticos (Ex: HAPV3, RDOR3, FLRY3)
+05 – Automóveis e Motocicletas (Ex: LEVE3, MYPK3)
+06 – Bebidas (Ex: ABEV3)
+07 – Comércio (Ex: MGLU3, LREN3, ARZZ3)
+08 – Comércio e Distribuição (Ex: CRFB3, ASAI3, RADL3)
+09 – Computadores e Equipamentos (Ex: POSI3, INTB3, MLAS3)
+10 – Construção Civil (Ex: CYRE3, MRVE3, EZTC3)
+11 – Construção e Engenharia (Ex: ETER3, PTBL3)
+12 – Diversos (Ex: RENT3, MOVI3, YDUQ3)
+13 – Embalagens (Ex: KLBN11)
+14 – Energia Elétrica (Ex: ELET3, EGIE3, CPFE3, TAEE11)
+15 – Equipamentos (Ex: WEGE3)
+16 – Exploração de Imóveis (Ex: MULT3, ALOS3, IGTI11)
+17 – Gás (Ex: CGAS5)
+18 – Holdings Diversificadas (Ex: ITSA4, SIMH3)
+19 – Hoteis e Restaurantes (Ex: MEAL3, ZAMP3)
+20 – Intermediários Financeiros (Ex: ITUB4, BBDC4, BBAS3, SANB11)
+21 – Madeira e Papel (Ex: SUZB3, DXCO3)
+22 – Máquinas e Equipamentos (Ex: WEGE3, TASA4, SHUL4)
+23 – Materiais Diversos (Ex: SNSY5)
+24 – Material de Transporte (Ex: EMBR3, RAPT4, TUPY3)
+25 – Medicamentos e Outros Produtos (Ex: BIOM3)
+26 – Mídia (Ex: SHOW3)
+27 – Mineração (Ex: VALE3, CMIN3)
+28 – Outros (Ex: MAPT4)
 29 – Outros Títulos
-30 – Petróleo, Gás e Biocombustíveis (Ex: Petrobras, Prio, Ultrapar)
-31 – Previdência e Seguros (Ex: Porto Seguro, Caixa Seguridade)
-32 – Produtos de Uso Pessoal e de Limpeza (Ex: Natura)
-33 – Programas e Serviços / Tecnologia da Informação (Ex: Totvs, Locaweb)
-34 – Químicos (Ex: Braskem, Unipar)
+30 – Petróleo, Gás e Biocombustíveis (Ex: PETR4, PRIO3, RECV3)
+31 – Previdência e Seguros (Ex: BBSE3, CXSE3, PSSA3, IRBR3)
+32 – Produtos de Uso Pessoal e de Limpeza (Ex: NTCO3)
+33 – Programas e Serviços (Ex: TOTS3, LWSA3)
+34 – Químicos (Ex: BRKM5, UNIP6)
 35 – Securitizadoras de Recebíveis
-36 – Serviços Médicos, Hospitalares, Análises e Diagnósticos (Ex: Fleury, Rede D'Or)
-37 – Serviços Diversos
-38 – Siderurgia e Metalurgia (Ex: Gerdau, Usiminas, CSN)
-39 – Tecidos, Vestuário e Calçados (Ex: Lojas Renner, Alpargatas, Arezzo)
-40 – Telecomunicações (Ex: Vivo/Telefonica, Tim)
-41 – Transporte (Logística, Concessionárias de Rodovias e Aviação / Ex: CCR, EcoRodovias, Azul)
-42 – Utilidades Domésticas (Ex: Whirlpool)
+36 – Serviços Diversos (Ex: SEQL3)
+37 – Serviços Financeiros Diversos (Ex: B3SA3, CIEL3)
+38 – Siderurgia e Metalurgia (Ex: GGBR4, CSNA3, USIM5)
+39 – Tecidos, Vestuário e Calçados (Ex: ALPA4, GRND3, VULC3)
+40 – Telecomunicações (Ex: VIVT3, TIMS3)
+41 – Transporte (Ex: RUMO3, CCRO3, ECOR3, AZUL4, GOLL4)
+42 – Utilidades Domésticas (Ex: WHRL4)
+43 – Viagens e Lazer (Ex: CVCB3, SMFT3)
 
-E de Segmentos por setores:
-Setor: Agro, Alimentos e Bebidas
-01 ou 53 – Açúcar e Álcool / Agricultura (Ex: São Martinho, Jalles Machado)
-03 – Alimentos Diversos (Ex: M. Dias Branco, Camil, Josapar)
-04 – Bebidas (Ex: Ambev)
-54 – Carnes e Derivados / Frigoríficos (Ex: JBS, BRF, Marfrig, Minerva)
+E de Segmentos (Subsetores) agrupados por Setor no Fundamentus (código – segmento):
 
-Setor: Financeiro e Seguros
-06 – Bancos (Ex: Itaú, Bradesco, BB, Santander, Banrisul)
-17 – Serviços Financeiros Diversos (Ex: B3, Cielo, WIZ)
-20 – Holdings Diversificadas (Ex: Itaúsa, Simpar)
-31 – Seguradoras e Corretoras (Ex: Porto Seguro, BB Seguridade, Caixa Seguridade)
-35 – Securitizadoras de Recebíveis
+Setor 01 – Agropecuária:
+  01 – Agricultura (Ex: SLCE3, AGRO3)
 
-Setor: Energia, Água e Saneamento (Utilidade Pública)
-02 – Água e Saneamento (Ex: Sabesp, Sanepar, Copasa)
-14 – Energia Elétrica (Geral - Empresas integradas como Eletrobras, Cemig)
-70 – Geração de Energia Elétrica (Ex: Engie, Auren)
-71 – Transmissão de Energia Elétrica (Ex: Taesa, ISA CTEEP)
-72 – Distribuição de Energia Elétrica (Ex: CPFL, Equatorial)
-19 – Gás (Ex: Comgás)
+Setor 02 – Água e Saneamento:
+  02 – Água e Saneamento (Ex: SBSP3, CSMG3, SAPR4)
 
-Setor|: Construção, Siderurgia e Materiais Básicos
-08 – Incorporações / Construção Civil (Ex: Cyrela, MRV, EzTec, Even)
-11 – Embalagens (Ex: Klabin, Irani)
-23 – Papel e Celulose (Ex: Suzano)
-27 – Mineração (Ex: Vale, CSN Mineração)
-34 – Petroquímicos e Químicos (Ex: Braskem, Unipar)
-38 – Siderurgia (Ex: Gerdau, Usiminas, CSN)
+Setor 03 – Alimentos Processados:
+  03 – Açúcar e Álcool (Ex: SMTO3, JALL3)
+  04 – Alimentos Diversos (Ex: MDIA3, CAML3)
+  05 – Carnes e Derivados (Ex: BEEF3, MRFG3, JBSS3)
 
-Setor: Comércio, Vestuário e Consumo (Varejo/Atacado)
-07 – Comércio / Varejo Geral (Ex: Magazine Luiza, Casas Bahia)
-32 – Produtos de Uso Pessoal / Cosméticos (Ex: Natura)
-39 – Tecidos, Vestuário e Calçados (Ex: Lojas Renner, Alpargatas, Arezzo, Grupo Soma)
-57 – Alimentos / Supermercados e Atacado (Ex: Carrefour, Assaí, Pão de Açúcar)
-62 – Medicamentos e Farmácias (Ex: RaiaDrogasil, Panvel)
+Setor 04 – Serv.Méd.Hospit. Análises e Diagnósticos:
+  06 – Serv.Méd.Hospit. Análises e Diagnósticos (Ex: HAPV3, RDOR3, FLRY3, DASA3)
 
-Setor: Saúde, Educação e Serviços
-12 – Educação (Ex: Cogna, Yduqs, Ser Educacional)
-36 – Serviços Médicos, Hospitalares e Análises (Ex: Fleury, Rede D'Or, Mater Dei)
-77 – Planos de Saúde e Seguros-Saúde (Ex: Hapvida, SulAmérica)
+Setor 05 – Automóveis e Motocicletas:
+  07 – Automóveis e Motocicletas (Ex: LEVE3, MYPK3, PLAS3)
 
-Setor: Logística, Transporte e Petróleo
-30 – Exploração, Refino e Distribuição de Petróleo (Ex: Petrobras, Prio, PetroReconcavo)
-41 – Transporte / Logística (Ex: Rumo, JSL)
-82 – Concessionárias de Rodovias (Ex: CCR, EcoRodovias)
-83 – Transporte Aéreo (Ex: Azul, Gol)
-85 – Aluguel de Carros e Gestão de Frotas (Ex: Localiza, Movida, Vamos)
+Setor 06 – Bebidas:
+  08 – Cervejas e Refrigerantes (Ex: ABEV3)
 
-Setor: Tecnologia e Telecomunicações
-33 – Programas e Serviços de TI (Ex: Totvs, Locaweb)
-40 – Telecomunicações (Ex: Vivo/Telefônica, Tim)
+Setor 07 – Comércio:
+  09 – Eletrodomésticos (Ex: MGLU3, BHIA3)
+  10 – Material de Transporte (Ex: WLMM4)
+  11 – Produtos Diversos (Ex: AMER3, SLED4)
+  12 – Tecidos, Vestuário e Calçados (Ex: LREN3, SOMA3, ARZZ3)
+
+Setor 08 – Comércio e Distribuição:
+  13 – Alimentos (Ex: CRFB3, GMAT3, PCAR3)
+  14 – Medicamentos e Outros Produtos (Ex: RADL3, PGMN3, VVEO3)
+
+Setor 09 – Computadores e Equipamentos:
+  15 – Computadores e Equipamentos (Ex: POSI3, INTB3, MLAS3)
+
+Setor 10 – Construção Civil:
+  16 – Incorporações (Ex: CYRE3, MRVE3, EZTC3, EVEN3)
+
+Setor 11 – Construção e Engenharia:
+  17 – Construção Pesada (Ex: AZEV4)
+  18 – Engenharia Consultiva (Ex: SOND5, TCNO4)
+  19 – Produtos para Construção (Ex: ETER3, PTBL3)
+
+Setor 12 – Diversos:
+  21 – Aluguel de Carros (Ex: RENT3, MOVI3, VAMO3)
+  22 – Programas de Fidelização (Ex: DOTZ3)
+  23 – Serviços Educacionais (Ex: YDUQ3, COGN3, ANIM3, SEER3)
+
+Setor 13 – Embalagens:
+  24 – Embalagens (Ex: KLBN11, MTIG4)
+
+Setor 14 – Energia Elétrica:
+  25 – Energia Elétrica (Ex: ELET3, EGIE3, CPFE3, TAEE11, CMIG4, EQTL3)
+
+Setor 15 – Equipamentos:
+  26 – Equipamentos (Ex: BALM4)
+
+Setor 16 – Exploração de Imóveis:
+  27 – Exploração de Imóveis (Ex: MULT3, ALOS3, IGTI11, BRPR3)
+  28 – Intermediação Imobiliária (Ex: LPSB3)
+
+Setor 17 – Gás:
+  29 – Gás (Ex: CGAS5)
+
+Setor 18 – Holdings Diversificadas:
+  30 – Holdings Diversificadas (Ex: ITSA4, SIMH3, MOAR3)
+
+Setor 19 – Hoteis e Restaurantes:
+  31 – Hotelaria (Ex: HOOT4)
+  32 – Restaurante e Similares (Ex: MEAL3, ZAMP3)
+
+Setor 20 – Intermediários Financeiros:
+  33 – Bancos (Ex: ITUB4, BBDC4, BBAS3, SANB11, BPAC11)
+  35 – Soc. Crédito e Financiamento (Ex: MERC4, CRIV4)
+
+Setor 21 – Madeira e Papel:
+  36 – Madeira (Ex: DXCO3, EUCA4)
+  37 – Papel e Celulose (Ex: SUZB3, RANI3)
+
+Setor 22 – Máquinas e Equipamentos:
+  38 – Armas e Munições (Ex: TASA4)
+  39 – Máq. e Equip. Construção e Agrícolas (Ex: MTSA4)
+  40 – Máq. e Equip. Industriais (Ex: AERI3, ROMI3, KEPL3)
+  41 – Motores, Compressores e Outros (Ex: WEGE3, SHUL4)
+
+Setor 23 – Materiais Diversos:
+  42 – Materiais Diversos (Ex: SNSY5)
+
+Setor 24 – Material de Transporte:
+  43 – Material Aeronáutico e de Defesa (Ex: EMBR3)
+  44 – Material Rodoviário (Ex: RAPT4, TUPY3, FRAS3, POMO4)
+
+Setor 25 – Medicamentos e Outros Produtos:
+  45 – Medicamentos e Outros Produtos (Ex: BIOM3, OFSA3)
+
+Setor 26 – Mídia:
+  47 – Publicidade e Propaganda (Ex: ELMD3)
+
+Setor 27 – Mineração:
+  48 – Minerais Metálicos (Ex: VALE3, CMIN3, CBAV3, AURA33)
+
+Setor 28 – Outros:
+  49 – Outros (Ex: MAPT4)
+
+Setor 29 – Outros Títulos:
+  (Sem subsetores/segmentos específicos ativos no momento)
+
+Setor 30 – Petróleo, Gás e Biocombustíveis:
+  51 – Equipamentos e Serviços (Ex: OPCT3, OSXB3)
+  52 – Exploração, Refino e Distribuição (Ex: PETR4, PRIO3, RECV3, VBBR3, UGPA3)
+
+Setor 31 – Previdência e Seguros:
+  53 – Corretoras de Seguros (Ex: WIZC3)
+  54 – Seguradoras (Ex: BBSE3, CXSE3, PSSA3, IRBR3)
+
+Setor 32 – Produtos de Uso Pessoal e de Limpeza:
+  55 – Produtos de Limpeza (Ex: BOBR4)
+  56 – Produtos de Uso Pessoal (Ex: NTCO3)
+
+Setor 33 – Programas e Serviços:
+  57 – Programas e Serviços (Ex: TOTS3, LWSA3, CASH3, BMOB3)
+
+Setor 34 – Químicos:
+  58 – Fertilizantes e Defensivos (Ex: FHER3, VITT3)
+  59 – Petroquímicos (Ex: BRKM5, DEXP3)
+  60 – Químicos Diversos (Ex: UNIP6)
+
+Setor 35 – Securitizadoras de Recebíveis:
+  (Sem subsetores/segmentos específicos ativos no momento)
+
+Setor 36 – Serviços Diversos:
+  62 – Serviços Diversos (Ex: SEQL3, DTCY3)
+
+Setor 37 – Serviços Financeiros Diversos:
+  63 – Gestão de Recursos e Investimentos (Ex: GPIV33)
+  64 – Serviços Financeiros Diversos (Ex: B3SA3, CIEL3)
+
+Setor 38 – Siderurgia e Metalurgia:
+  65 – Artefatos de Cobre (Ex: PMAM3)
+  66 – Artefatos de Ferro e Aço (Ex: FESA4)
+  67 – Siderurgia (Ex: GGBR4, CSNA3, USIM5)
+
+Setor 39 – Tecidos, Vestuário e Calçados:
+  68 – Acessórios (Ex: VIVA3, TECN3)
+  69 – Calçados (Ex: ALPA4, GRND3, VULC3)
+  70 – Fios e Tecidos (Ex: DOHL4, CEDO4)
+  71 – Vestuário (Ex: GUAR3, TFCO4)
+
+Setor 40 – Telecomunicações:
+  72 – Telecomunicações (Ex: VIVT3, TIMS3, FIQE3, OIBR3)
+
+Setor 41 – Transporte:
+  73 – Exploração de Rodovias (Ex: CCRO3, ECOR3)
+  74 – Serviços de Apoio e Armazenagem (Ex: PORT3, STBP3)
+  75 – Transporte Aéreo (Ex: AZUL4, GOLL4)
+  76 – Transporte Ferroviário (Ex: RAIL3)
+  77 – Transporte Hidroviário (Ex: LOGN3, HBSA3)
+  78 – Transporte Rodoviário (Ex: JSLG3, TGMA3)
+
+Setor 42 – Utilidades Domésticas:
+  79 – Eletrodomésticos (Ex: WHRL4)
+  80 – Móveis (Ex: UCAS3)
+  81 – Utensílios Domésticos (Ex: HETA4)
+
+Setor 43 – Viagens e Lazer:
+  82 – Atividades Esportivas (Ex: SMFT3)
+  83 – Bicicletas (Ex: BMKS3)
+  84 – Brinquedos e Jogos (Ex: ESTR4)
+  85 – Produção de Eventos e Shows (Ex: SHOW3)
+  86 – Viagens e Turismo (Ex: CVCB3)
 
 3. Arquitetura da Crew (Agentes e Tarefas)
 Agente 1: O Triador Fundamentalista (Screener)

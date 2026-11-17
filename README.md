@@ -26,11 +26,11 @@ Tudo isso ocorre com **uma única interação** na interface Streamlit, exibindo
 | **Frontend** | **Streamlit** (Python) | Criação rápida de UI interativa, suporte a tema escuro e fácil integração com código Python. |
 | **Estilização** | CSS customizado (glassmorphism, gradientes, tipografia *Inter* da Google Fonts) | Design premium, responsivo e com micro‑animações que dão “wow” ao usuário. |
 | **Orquestração de agentes** | **CrewAI 0.11.2** (padrão *Task Factory*) | Permite definir agentes especializados e sequenciar tarefas sem necessidade de `inputs=` (compatível com a versão instalada). |
-| **Modelo de linguagem** | **langchain‑openai 0.0.5** + **OpenRouter** (modelo *Gemini 2.5 Flash*, configurado `max_tokens=4000`, `temperature=0.1`) | LLM de alta performance, custo controlado e suporte a cabeçalhos personalizados. |
+| **Modelo de linguagem** | **langchain‑openai 0.0.5** + **Google Cloud Vertex AI** (modelo *google/gemini-3-flash-preview*, endpoint OpenAPI com autenticação ADC, `max_tokens=12000`, `temperature=0.1`) | LLM de alta performance, consumo direto de créditos GCP/Vertex AI e integração estável com CrewAI. |
 | **Aquisição de dados financeiros** | **fundamentus** (pacote Python) | API que raspa de forma estruturada o portal *fundamentus.com.br*, entregando tabelas de P/L, ROE, DY, crescimento de receita etc. |
 | **Ferramentas customizadas** | `FundamentusScreenerTool`, `AuditorHistoricoTool`, `InvestigadorGovernancaTool` (subclasse de `BaseTool` do LangChain) | Garantem que o Triador, Auditor e Investigador trabalhem com dados reais e regras de negócio claras, eliminando falhas de buscas genéricas. |
 | **Gerenciamento de ambiente** | **virtualenv** (`.venv`) + **pip** | Isolamento das dependências do projeto, facilitando replicação e implantação. |
-| **Persistência de credenciais** | Arquivo `keys.txt` (Serper API + OpenRouter API) | Leitura simples via `config.carregar_chaves()`, mantendo as chaves fora do código. |
+| **Autenticação / Credenciais** | Google Cloud Application Default Credentials (ADC via `gcloud auth application-default login`) | Autenticação segura e nativa do GCP sem necessidade de expor chaves estáticas no código. |
 | **Versionamento** | Estrutura de pastas `agents.py`, `tasks.py`, `tools.py`, `config.py`, `app.py` | Organização modular que permite extensão rápida (novos setores, novas métricas ou mudança de LLM). |
 
 ---
@@ -41,7 +41,7 @@ Tudo isso ocorre com **uma única interação** na interface Streamlit, exibindo
 - **Pipeline totalmente automatizado** – o usuário clica em “Iniciar Triagem” e, em poucos segundos, recebe o ranking final.
 - **Design avançado** – UI em dark‑mode com glassmorphism, tipografia premium e animações suaves, proporcionando uma experiência de alto nível visual.
 - **Escalabilidade** – a arquitetura baseada em agentes e ferramentas facilita a inclusão de novos indicadores (ex.: valuation, métricas ESG) ou a migração para outros provedores de dados.
-- **Controle de custos** – `max_tokens=4000` e temperatura baixa garantem respostas objetivas e evitam consumo excessivo de créditos da API OpenRouter.
+- **Controle de custos e completude** – `max_tokens=12000` e temperatura baixa garantem respostas aprofundadas e evitam truncamentos no raciocínio do Google Cloud Vertex AI.
 
 ---
 
@@ -57,12 +57,15 @@ pip install -r requirements.txt  # instala as dependências
 ```
 
 ### 2️⃣ Configurar as credenciais
-Crie (ou edite) o arquivo **`keys.txt`** na raiz do projeto com duas linhas:
+Autentique-se no Google Cloud usando Application Default Credentials (ADC):
+```bash
+gcloud auth application-default login
 ```
-<SEPER_API_KEY>
-<OPENROUTER_API_KEY>
+*(Opcional)* Você pode definir o projeto GCP e a região via variáveis de ambiente:
+```bash
+export GCP_PROJECT_ID="genai-vsv"
+export GCP_LOCATION="global"
 ```
-Deixe a linha vazia caso não use um dos serviços.
 
 ### 3️⃣ Iniciar a aplicação
 ```bash
@@ -78,4 +81,4 @@ A interface será aberta em `http://127.0.0.1:8501`.
 ----
 
 # Exemplo de relatório de saída
-O arquio [relatorio_b3_bancos_bancos](relatorio_b3_bancos_bancos.md) ilustra um exemplo da saída do sistema para o caso de bancos.
+O arquivo [relatorio_b3_bancos_bancos](relatorio_b3_bancos_bancos.md) ilustra um exemplo da saída do sistema para o caso de bancos.
