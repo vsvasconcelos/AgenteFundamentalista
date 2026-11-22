@@ -12,11 +12,292 @@ As URLs de acesso ao Fundamentus seguem o padrão:
 onde os códigos são os definidos na especificação de arquitetura.
 """
 
+import io
+import re
 import warnings
 from typing import ClassVar
 import pandas as pd
+import requests
+import requests_cache
 import fundamentus as fund
 from langchain.tools import BaseTool
+
+
+# -----------------------------------------------------------------------
+# Cache e utilitários para obtenção e formatação do nome das empresas B3
+# -----------------------------------------------------------------------
+_CACHE_NOMES_EMPRESAS: dict[str, str] = {}
+
+# Nomes canônicos com acentuação impecável para empresas frequentes da B3
+_NOMES_CANONICOS_B3: dict[str, str] = {
+    "SLCE3": "SLC Agrícola S.A.",
+    "AGRO3": "BrasilAgro S.A.",
+    "TTEN3": "3tentos Agroindustrial S.A.",
+    "SMTO3": "São Martinho S.A.",
+    "JALL3": "Jalles Machado S.A.",
+    "SBSP3": "Sabesp S.A.",
+    "CSMG3": "Copasa S.A.",
+    "SAPR4": "Sanepar S.A.",
+    "SAPR11": "Sanepar S.A.",
+    "MDIA3": "M. Dias Branco S.A.",
+    "BEEF3": "Minerva S.A.",
+    "JBSS3": "JBS S.A.",
+    "MRFG3": "Marfrig Global Foods S.A.",
+    "BRFS3": "BRF S.A.",
+    "CAML3": "Camil Alimentos S.A.",
+    "ABEV3": "Ambev S.A.",
+    "ITUB4": "Itaú Unibanco Holding S.A.",
+    "ITUB3": "Itaú Unibanco Holding S.A.",
+    "BBDC4": "Banco Bradesco S.A.",
+    "BBDC3": "Banco Bradesco S.A.",
+    "BBAS3": "Banco do Brasil S.A.",
+    "SANB11": "Banco Santander (Brasil) S.A.",
+    "BPAC11": "Banco BTG Pactual S.A.",
+    "BRSR6": "Banrisul S.A.",
+    "ABCB4": "Banco ABC Brasil S.A.",
+    "PETR4": "Petróleo Brasileiro S.A. - Petrobras",
+    "PETR3": "Petróleo Brasileiro S.A. - Petrobras",
+    "PRIO3": "PRIO S.A.",
+    "RECV3": "PetroReconcavo S.A.",
+    "VBBR3": "Vibra Energia S.A.",
+    "UGPA3": "Ultrapar Participações S.A.",
+    "VALE3": "Vale S.A.",
+    "CMIN3": "CSN Mineração S.A.",
+    "CBAV3": "Companhia Brasileira de Alumínio S.A.",
+    "WEGE3": "WEG S.A.",
+    "ELET3": "Eletrobras S.A.",
+    "ELET6": "Eletrobras S.A.",
+    "EGIE3": "Engie Brasil Energia S.A.",
+    "CPFE3": "CPFL Energia S.A.",
+    "TAEE11": "Taesa S.A.",
+    "CMIG4": "Cemig S.A.",
+    "EQTL3": "Equatorial Energia S.A.",
+    "CPLE6": "Copel S.A.",
+    "TRPL4": "ISA CTEEP S.A.",
+    "ITSA4": "Itaúsa S.A.",
+    "BBSE3": "BB Seguridade Participações S.A.",
+    "CXSE3": "Caixa Seguridade Participações S.A.",
+    "PSSA3": "Porto Seguro S.A.",
+    "IRBR3": "IRB-Brasil Resseguros S.A.",
+    "B3SA3": "B3 S.A. - Brasil, Bolsa, Balcão",
+    "SUZB3": "Suzano S.A.",
+    "KLBN11": "Klabin S.A.",
+    "GGBR4": "Gerdau S.A.",
+    "CSNA3": "Companhia Siderúrgica Nacional S.A.",
+    "USIM5": "Usiminas S.A.",
+    "RADL3": "Raia Drogasil S.A.",
+    "HAPV3": "Hapvida Participações e Investimentos S.A.",
+    "RDOR3": "Rede D'Or São Luiz S.A.",
+    "FLRY3": "Fleury S.A.",
+    "RENT3": "Localiza Rent a Car S.A.",
+    "MOVI3": "Movida Participações S.A.",
+    "LREN3": "Lojas Renner S.A.",
+    "MGLU3": "Magazine Luiza S.A.",
+    "ASAI3": "Sendas Distribuidora S.A. (Assaí)",
+    "CRFB3": "Atacadão S.A. (Carrefour Brasil)",
+    "TOTS3": "TOTVS S.A.",
+    "VIVT3": "Telefônica Brasil S.A.",
+    "TIMS3": "TIM S.A.",
+    "EMBR3": "Embraer S.A.",
+    "RAIL3": "Rumo S.A.",
+    "CCRO3": "CCR S.A.",
+    "ECOR3": "EcoRodovias Infraestrutura e Logística S.A.",
+    "CYRE3": "Cyrela Brazil Realty S.A.",
+    "EZTC3": "EZTEC Empreendimentos e Participações S.A.",
+    "MRVE3": "MRV Engenharia e Participações S.A.",
+    "MULT3": "Multiplan Empreendimentos Imobiliários S.A.",
+    "ALOS3": "Allos S.A.",
+}
+
+_SIGLAS_MAIUSCULAS = {
+    "SLC", "WEG", "BTG", "B3", "BB", "BR", "BRF", "JBS", "MRV", "CSN", "CCR",
+    "CBA", "IRB", "CVC", "BMG", "ABC", "AES", "CPFL", "CTEEP", "ISA", "TIM",
+    "RNI", "PRIO", "TOTVS", "KLBN", "TAESA", "ENGIE", "EZTEC", "FLEURY",
+}
+
+_PREPOSICOES_MINUSCULAS = {"de", "da", "do", "das", "dos", "e", "em", "para", "com", "por"}
+
+_CORRECOES_ACENTUACAO = {
+    "Agricola": "Agrícola",
+    "Agricolas": "Agrícolas",
+    "Itau": "Itaú",
+    "Petroleo": "Petróleo",
+    "Eletrobras": "Eletrobrás",
+    "Siderurgica": "Siderúrgica",
+    "Participacoes": "Participações",
+    "Mineracao": "Mineração",
+    "Transmissao": "Transmissão",
+    "Geracao": "Geração",
+    "Distribuicao": "Distribuição",
+    "Servicos": "Serviços",
+    "Diagnosticos": "Diagnósticos",
+    "Logistica": "Logística",
+    "Construcoes": "Construções",
+    "Comercio": "Comércio",
+    "Industria": "Indústria",
+    "Acucar": "Açúcar",
+    "Alcool": "Álcool",
+    "Saude": "Saúde",
+    "Educacao": "Educação",
+    "Imobiliarios": "Imobiliários",
+    "Imobiliario": "Imobiliário",
+    "Eletrica": "Elétrica",
+}
+
+
+def _formatar_razao_social(nome_raw: str) -> str:
+    """
+    Formata a razão social ou nome comercial retornado pelo Fundamentus
+    para um padrão corporativo limpo (ex: 'SLC AGRICOLA SA' -> 'SLC Agrícola S.A.').
+    """
+    if not nome_raw:
+        return ""
+    nome = str(nome_raw).strip()
+    nome = re.sub(r"\s+(ON|PN|PNA|PNB|UNT)\b(\s+(NM|N1|N2|MA|MB))?$", "", nome, flags=re.IGNORECASE).strip()
+    nome = re.sub(r"\s+(S/A|S\.A\.?|SA)\.?$", " S.A.", nome, flags=re.IGNORECASE)
+
+    palavras = nome.split()
+    formatadas = []
+    for i, p in enumerate(palavras):
+        p_upper = p.upper().rstrip(".,")
+        if p.upper() in ("S.A.", "S/A", "S.A", "SA"):
+            formatadas.append("S.A.")
+        elif p.upper() in ("LTDA", "LTDA."):
+            formatadas.append("Ltda.")
+        elif p_upper in _SIGLAS_MAIUSCULAS:
+            formatadas.append(p.upper())
+        elif i > 0 and p.lower() in _PREPOSICOES_MINUSCULAS:
+            formatadas.append(p.lower())
+        else:
+            palavra_cap = p.capitalize()
+            palavra_cap = _CORRECOES_ACENTUACAO.get(palavra_cap, palavra_cap)
+            formatadas.append(palavra_cap)
+
+    resultado = " ".join(formatadas)
+    if not resultado.endswith("S.A.") and not resultado.endswith("Ltda.") and not resultado.endswith("Ltd."):
+        resultado = f"{resultado} S.A."
+    return resultado
+
+
+def _carregar_tabela_nomes_fundamentus() -> None:
+    """
+    Carrega e faz cache em memória do mapeamento Papel -> Nome da Empresa
+    a partir da página detalhes.php do Fundamentus.
+    """
+    if _CACHE_NOMES_EMPRESAS:
+        return
+    _CACHE_NOMES_EMPRESAS.update(_NOMES_CANONICOS_B3)
+    try:
+        url = "http://fundamentus.com.br/detalhes.php?papel="
+        hdr = {
+            "User-agent": "Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201",
+            "Accept": "text/html, text/plain, text/css, text/sgml, */*;q=0.01",
+        }
+        with requests_cache.enabled():
+            content = requests.get(url, headers=hdr, timeout=15)
+        df = pd.read_html(io.StringIO(content.text), decimal=",", thousands=".")[0]
+        for _, row in df.iterrows():
+            papel = str(row.get("Papel", "")).strip().upper()
+            if not papel or papel in _CACHE_NOMES_EMPRESAS:
+                continue
+            razao = str(row.get("Razão Social", "")).strip()
+            comercial = str(row.get("Nome Comercial", "")).strip()
+            base = razao if razao and razao.lower() != "nan" else comercial
+            if base and base.lower() != "nan":
+                _CACHE_NOMES_EMPRESAS[papel] = _formatar_razao_social(base)
+    except Exception:
+        pass
+
+
+def obter_nome_empresa(ticker: str) -> str:
+    """
+    Retorna o nome da empresa associado ao ticker da B3
+    (ex: 'SLCE3' -> 'SLC Agrícola S.A.').
+    """
+    codigo = re.sub(r"[^A-Z0-9]", "", str(ticker).upper().split("(")[0].strip())
+    if not codigo:
+        return ""
+    _carregar_tabela_nomes_fundamentus()
+    if codigo in _CACHE_NOMES_EMPRESAS:
+        return _CACHE_NOMES_EMPRESAS[codigo]
+    try:
+        df = fund.get_detalhes_papel(codigo)
+        if df is not None and not df.empty and "Empresa" in df.columns:
+            emp = _formatar_razao_social(str(df["Empresa"].iloc[0]))
+            if emp:
+                _CACHE_NOMES_EMPRESAS[codigo] = emp
+                return emp
+    except Exception:
+        pass
+    return ""
+
+
+def formatar_ticker_com_empresa(ticker: str) -> str:
+    """
+    Formata o ticker acompanhado do nome da empresa entre parênteses.
+    Exemplo: 'SLCE3' -> 'SLCE3 (SLC Agrícola S.A.)'
+    """
+    codigo = re.sub(r"[^A-Z0-9]", "", str(ticker).upper().split("(")[0].strip())
+    nome = obter_nome_empresa(codigo)
+    return f"{codigo} ({nome})" if nome else codigo
+
+
+def enriquecer_primeira_ocorrencia_tickers(texto: str) -> str:
+    """
+    Garante que no texto/relatório a 1ª ocorrência de cada ticker da B3
+    esteja acompanhada do nome da empresa no formato 'TICKER (Nome da Empresa)',
+    ex: 'SLCE3 (SLC Agrícola S.A.)'.
+    """
+    if not texto:
+        return texto
+
+    padrao_ticker = re.compile(r"\b([A-Z]{4}(?:3|4|5|6|11|33|34))\b")
+    tickers_vistos: set[str] = set()
+    tickers_ordem: list[str] = []
+    for match in padrao_ticker.finditer(texto):
+        tk = match.group(1)
+        if tk not in tickers_vistos:
+            tickers_vistos.add(tk)
+            tickers_ordem.append(tk)
+
+    texto_enriquecido = texto
+    for tk in tickers_ordem:
+        nome = obter_nome_empresa(tk)
+        if not nome:
+            continue
+        m = re.search(rf"\b{re.escape(tk)}\b", texto_enriquecido)
+        if not m:
+            continue
+        pos_fim = m.end()
+        sufixo = texto_enriquecido[pos_fim : pos_fim + 80]
+        if re.match(r"^(\*\*)?\s*\(", sufixo):
+            continue
+        texto_enriquecido = (
+            texto_enriquecido[: m.start()]
+            + f"{tk} ({nome})"
+            + texto_enriquecido[pos_fim:]
+        )
+
+    return texto_enriquecido
+
+
+def extrair_tickers_com_empresas(texto: str) -> list[str]:
+    """
+    Extrai os tickers da B3 presentes em um texto na ordem da 1ª aparição,
+    retornando cada um formatado como 'TICKER (Nome da Empresa)'.
+    """
+    if not texto:
+        return []
+    padrao_ticker = re.compile(r"\b([A-Z]{4}(?:3|4|5|6|11|33|34))\b")
+    vistos: set[str] = set()
+    resultado: list[str] = []
+    for m in padrao_ticker.finditer(texto):
+        tk = m.group(1)
+        if tk not in vistos:
+            vistos.add(tk)
+            resultado.append(formatar_ticker_com_empresa(tk))
+    return resultado
+
 
 
 # -----------------------------------------------------------------------
@@ -245,6 +526,10 @@ def triar_acoes(setor_label: str, segmento_label: str = "", top_n: int = 5) -> s
     top["DY (%)"]  = (top["DY (%)"]  * 100).round(2)
     top["Score"]   = top["Score"].round(4)
 
+    # Formata o índice para incluir o nome da empresa na 1ª aparição: Ex: SLCE3 (SLC Agrícola S.A.)
+    top.index = [formatar_ticker_com_empresa(tk) for tk in top.index]
+    top.index.name = "Ticker (Empresa)"
+
     n_analisadas = len(df_all[df_all.index.isin(tickers)])
     resultado = (
         f"=== TRIAGEM FUNDAMENTALISTA — {label_ativo.upper()} ===\n"
@@ -310,7 +595,12 @@ class AuditorHistoricoTool(BaseTool):
     )
 
     def _run(self, query: str) -> str:
-        tickers = [t.strip() for t in query.split(",") if t.strip()]
+        tickers = [
+            re.sub(r"[^A-Z0-9]", "", t.split("(")[0].strip().upper())
+            for t in query.split(",")
+            if t.strip()
+        ]
+        tickers = [t for t in tickers if t]
         if not tickers:
             return "Nenhum ticker fornecido para auditoria."
 
@@ -318,7 +608,7 @@ class AuditorHistoricoTool(BaseTool):
         for ticker in tickers:
             try:
                 df = fund.get_detalhes_papel(ticker)
-                if df.empty:
+                if df is None or df.empty:
                     resultados.append(f"Ticker: {ticker} | Dado não encontrado no Fundamentus.")
                     continue
 
@@ -339,8 +629,9 @@ class AuditorHistoricoTool(BaseTool):
                     tendencia = "Volátil / Decrescente"
                     aprovado  = "Não"
 
+                ticker_fmt = formatar_ticker_com_empresa(ticker)
                 resultados.append(
-                    f"Ticker: {ticker} | ROE Atual: {roe:.1f}% | "
+                    f"Ticker: {ticker_fmt} | ROE Atual: {roe:.1f}% | "
                     f"Cresc. Receita 5a: {cresc:.1f}% | "
                     f"Tendência: {tendencia} | Aprovado: {aprovado}"
                 )
@@ -375,7 +666,12 @@ class InvestigadorGovernancaTool(BaseTool):
     ]
 
     def _run(self, query: str) -> str:
-        tickers = [t.strip() for t in query.split(",") if t.strip()]
+        tickers = [
+            re.sub(r"[^A-Z0-9]", "", t.split("(")[0].strip().upper())
+            for t in query.split(",")
+            if t.strip()
+        ]
+        tickers = [t for t in tickers if t]
         if not tickers:
             return "Nenhum ticker fornecido para investigação de governança."
 
@@ -383,7 +679,7 @@ class InvestigadorGovernancaTool(BaseTool):
         for ticker in tickers:
             try:
                 df = fund.get_detalhes_papel(ticker)
-                if df.empty:
+                if df is None or df.empty:
                     resultados.append(
                         f"Ticker: {ticker} | Dado não encontrado no Fundamentus."
                     )
@@ -421,8 +717,9 @@ class InvestigadorGovernancaTool(BaseTool):
                     else "Possível concentração de controle — verificar DFP"
                 )
 
+                ticker_fmt = formatar_ticker_com_empresa(ticker)
                 resultados.append(
-                    f"Ticker: {ticker} | Tipo: {tipo} | "
+                    f"Ticker: {ticker_fmt} | Tipo: {tipo} | "
                     f"Nível Governança B3: {nivel_gov} | "
                     f"Free Float Estimado: {free_float_est} | "
                     f"Risco Estatal: {risco_estatal} | "

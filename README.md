@@ -47,38 +47,58 @@ Tudo isso ocorre com **uma única interação** na interface Streamlit, exibindo
 
 ## Executando a aplicação
 
-### 1️⃣ Preparar o ambiente
+### 1️⃣ Acessar o diretório do projeto
 ```bash
-# Acesse a pasta do projeto, exemplo:
-cd /home/vsvasconcelos/agents/fundamentalista
-python3 -m venv .venv            # cria o virtual‑env
-source .venv/bin/activate        # ativa
+cd /home/vsvasconcelos/projetos/fundamentalista
+```
+
+### 2️⃣ Preparar e ativar o ambiente virtual (`.venv`)
+
+Caso o ambiente virtual `.venv` já exista no diretório, basta ativá-lo:
+```bash
+source .venv/bin/activate
+```
+
+**Caso precise criar/recriar o ambiente virtual e instalar as dependências do zero:**
+
+Opção A — Usando o script automatizado (`setup.sh`):
+```bash
+bash setup.sh
+source .venv/bin/activate
+```
+
+Opção B — Manualmente via `venv` e `pip`:
+```bash
+python3 -m venv .venv            # cria o virtual-env
+source .venv/bin/activate        # ativa o ambiente virtual
+pip install --upgrade pip        # atualiza o pip
 pip install -r requirements.txt  # instala as dependências
 ```
 
-### 2️⃣ Configurar as credenciais
+### 3️⃣ Configurar as credenciais (Google Cloud / Vertex AI)
 Autentique-se no Google Cloud usando Application Default Credentials (ADC):
 ```bash
 gcloud auth application-default login
 ```
-*(Opcional)* Você pode definir o projeto GCP e a região via variáveis de ambiente:
+*(Opcional)* Por padrão, o sistema utiliza o projeto `genai-vsv` e a localização `global`. Caso deseje sobrescrever via variáveis de ambiente:
 ```bash
 export GCP_PROJECT_ID="genai-vsv"
 export GCP_LOCATION="global"
 ```
 
-### 3️⃣ Iniciar a aplicação
+### 4️⃣ Lançar a aplicação Streamlit
+Com o ambiente `.venv` ativado, execute:
 ```bash
 streamlit run app.py
 ```
-A interface será aberta em `http://127.0.0.1:8501`.
+A interface web será aberta automaticamente no navegador em `http://localhost:8501` (ou `http://127.0.0.1:8501`).
 
-### 4️⃣ Usar a ferramenta
-1. Selecione o **Setor** e **Subsetor** desejado.
-2. Clique em **“Iniciar Triagem”**.
-3. Acompanhe os logs dos quatro agentes (Triador → Auditor → Investigador → CIO).
-4. O **Ranking Final** será exibido em Markdown logo abaixo.
+### 5️⃣ Usar a ferramenta
+1. Selecione o **Setor da B3** desejado e, opcionalmente, filtre o **Segmento / Subsetor**.
+2. Clique em **“🚀 Iniciar Triagem”**.
+3. Acompanhe em tempo real os logs dos quatro agentes (`Triador` → `Auditor` → `Investigador` → `CIO`).
+4. Visualize na interface os ativos identificados — trazendo o ticker e o nome da empresa na 1ª aparição, ex.: `SLCE3 (SLC Agrícola S.A.)` — e o **Relatório Executivo de Alocação** completo em Markdown logo abaixo (com opção de download em `.md`).
 ----
 
 # Exemplo de relatório de saída
-O arquivo [relatorio_b3_bancos_bancos](relatorio_b3_bancos_bancos.md) ilustra um exemplo da saída do sistema para o caso de bancos.
+Os arquivos [relatorio_b3_bancos_bancos.md](relatorio_b3_bancos_bancos.md) e [relatorio_b3_agropecuária.md](relatorio_b3_agropecuária.md) ilustram exemplos da saída do sistema.

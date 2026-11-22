@@ -50,11 +50,13 @@ def criar_tarefas(setor, segmento, triador, auditor, investigador, cio):
             "  2. Ordena as restantes por ROE (Return on Equity) de forma decrescente\n"
             "  3. Cruza e pondera com o Dividend Yield (DY), priorizando maiores valores positivos\n"
             "  4. Retorna a lista limpa com exatamente os Top 5 Tickers resultantes\n\n"
-            "Apresente o resultado da ferramenta como sua resposta, adicionando apenas "
-            "uma breve observação sobre o critério aplicado."
+            "Apresente o resultado da ferramenta como sua resposta, mantendo o nome da empresa "
+            "ao lado do ticker na 1ª vez que aparecer (ex: SLCE3 (SLC Agrícola S.A.)), e adicionando "
+            "apenas uma breve observação sobre o critério aplicado."
         ),
         expected_output=(
-            "Tabela com os Top 5 tickers da B3 do setor/segmento selecionado, com P/L, "
+            "Tabela com os Top 5 tickers da B3 (com o nome da empresa na 1ª aparição, ex: "
+            "SLCE3 (SLC Agrícola S.A.)) do setor/segmento selecionado, com P/L, "
             "ROE (%) e DY (%), extraída de dados reais do Fundamentus.com.br."
         ),
         agent=triador,
@@ -124,17 +126,25 @@ def criar_tarefas(setor, segmento, triador, auditor, investigador, cio):
     )
 
     # ----------------------------------------------------------------
-    # Tarefa 4 — Relatório Executivo Final (CIO)
+    # Tarefa 4 — Relatório Executivo de Alocação Final (CIO)
     # ----------------------------------------------------------------
     tarefa_relatorio_cio = Task(
         description=(
             f"Consolide todas as análises anteriores (triagem fundamentalista, auditoria "
             f"histórica e investigação de governança) para o {escopo} e produza o "
-            f"Relatório Executivo Final com Ranking de Investimento completo.\n\n"
+            f"**Relatório Executivo de Alocação** com o Ranking de Investimento completo.\n\n"
+            "**REGRA DE FORMATAÇÃO DE TICKER E NOME DA EMPRESA:**\n"
+            "Na **1ª vez que cada ticker aparecer** no Relatório Executivo de Alocação "
+            "(logo na tabela do Ranking Final), acrescente obrigatoriamente o nome da empresa "
+            "entre parênteses após o ticker, exatamente no formato: `TICKER (Nome da Empresa)`, "
+            "por exemplo: `SLCE3 (SLC Agrícola S.A.)`.\n\n"
             "**Estrutura obrigatória do relatório em Markdown premium:**\n\n"
+            "# 🏛️ Relatório Executivo de Alocação\n\n"
             "## 📊 Ranking Final — Top Ações para Investimento\n"
-            "Apresente a tabela com todas as empresas classificadas (que avançaram nas etapas anteriores):\n"
-            "| # | Ticker | ROE (%) | DY (%) | Tendência ROE | Free Float (%) | Risco Estatal | Score |\n\n"
+            "Apresente a tabela com todas as empresas classificadas (que avançaram nas etapas anteriores), "
+            "trazendo na coluna Ticker o código acompanhado do nome da empresa (1ª aparição do ativo no relatório):\n"
+            "| # | Ticker (Empresa) | ROE (%) | DY (%) | Tendência ROE | Free Float (%) | Risco Estatal | Score |\n"
+            "Exemplo de preenchimento da 1ª aparição: `**SLCE3 (SLC Agrícola S.A.)**`\n\n"
             "**Como o Score foi calculado**\n"
             "Descreva de forma concisa os 4 critérios ponderados (ROE 40%, Dividend Yield 20%, Free Float 20%, Risco Estatal 20%) "
             "e como o score final (0 a 100) foi obtido.\n\n"
@@ -160,7 +170,8 @@ def criar_tarefas(setor, segmento, triador, auditor, investigador, cio):
             "*Este relatório é gerado por IA e não constitui recomendação de investimento. Consulte um profissional certificado.*"
         ),
         expected_output=(
-            "Relatório executivo completo em Markdown contendo: tabela de ranking final com scores ponderados, "
+            "Relatório Executivo de Alocação completo em Markdown contendo: tabela de ranking final "
+            "com o formato 'TICKER (Nome da Empresa)' na 1ª aparição de cada ativo (ex: SLCE3 (SLC Agrícola S.A.)), "
             "metodologia do Score, justificativa estruturada em bullet points para TODAS as empresas do ranking "
             "(sem exceção ou corte), conclusão com recomendação percentual de alocação por ativo e disclaimer legal."
         ),

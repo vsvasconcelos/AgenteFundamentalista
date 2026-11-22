@@ -14,6 +14,7 @@ from agents import (
     cio_alocacao,
 )
 from tasks import criar_tarefas
+from tools import enriquecer_primeira_ocorrencia_tickers
 
 
 # ---------------------------------------------------------------
@@ -132,5 +133,8 @@ def run_analysis(setor, segmento, status_widget=None, log_widget=None):
         # Restaura stdout original independentemente de erros
         if redirector is not None:
             sys.stdout = redirector.original_stdout
+
+    if resultado:
+        resultado = enriquecer_primeira_ocorrencia_tickers(str(resultado))
 
     return resultado

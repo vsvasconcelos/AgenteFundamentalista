@@ -1,12 +1,12 @@
-**
+# 🏛️ Relatório Executivo de Alocação
 
 ## 📊 Ranking Final — Top Ações para Investimento  
-| # | Ticker | ROE (%) | DY (%) | Tendência ROE | Free Float (%) | Risco Estatal | Score |
+| # | Ticker (Empresa) | ROE (%) | DY (%) | Tendência ROE | Free Float (%) | Risco Estatal | Score |
 |---|--------|---------|--------|---------------|----------------|---------------|-------|
-| 1 | **BPAC11** | 15,8 | 4,9 | Crescente | 28,4 | Baixo | **76,8** |
-| 2 | **ITUB4**  | 18,2 | 5,6 | Estável   | 22,1 | Baixo | **76,4** |
-| 3 | **SANB11** | 16,5 | 5,2 | Estável   | 30,7 | Baixo | **75,7** |
-| 4 | **BBDC4**  | 17,0 | 5,0 | Decrescente| 21,8 | Baixo | **68,7** |
+| 1 | **BPAC11 (Banco BTG Pactual S.A.)** | 15,8 | 4,9 | Crescente | 28,4 | Baixo | **76,8** |
+| 2 | **ITUB4 (Itaú Unibanco Holding S.A.)**  | 18,2 | 5,6 | Estável   | 22,1 | Baixo | **76,4** |
+| 3 | **SANB11 (Banco Santander (Brasil) S.A.)** | 16,5 | 5,2 | Estável   | 30,7 | Baixo | **75,7** |
+| 4 | **BBDC4 (Banco Bradesco S.A.)**  | 17,0 | 5,0 | Decrescente| 21,8 | Baixo | **68,7** |
 
 **Como o Score foi calculado**  
 - **ROE (40 %)**: normalizado em escala 0‑20 % → 0‑100 pontos; ajuste de tendência (+10 para *Crescente*, 0 para *Estável*, –10 para *Decrescente*).  

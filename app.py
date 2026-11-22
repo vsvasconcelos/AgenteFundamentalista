@@ -280,6 +280,7 @@ sistema_ok = False
 try:
     from crew import run_analysis
     from config import SETORES_B3, SEGMENTOS_POR_GRUPO, MAPA_SETOR_PARA_GRUPO
+    from tools import enriquecer_primeira_ocorrencia_tickers, extrair_tickers_com_empresas
     sistema_ok = True
 except Exception as e:
     st.error(
@@ -431,7 +432,8 @@ if sistema_ok:
 
         # ── Exibição do Resultado Final ──────────────────────────
         if resultado:
-            resultado_str = str(resultado)
+            resultado_str = enriquecer_primeira_ocorrencia_tickers(str(resultado))
+            ativos_identificados = extrair_tickers_com_empresas(resultado_str)
 
             st.markdown("---")
 
@@ -444,9 +446,23 @@ if sistema_ok:
             with col_m3:
                 st.metric("Agentes Executados", "4")
             with col_m4:
-                st.metric("Top Empresas", "5")
+                st.metric("Top Empresas", str(len(ativos_identificados)) if ativos_identificados else "5")
 
-            st.markdown("### 📋 Relatório Executivo — Comitê de Investimentos (CIO)")
+            # Painel na UI exibindo os tickers acompanhados do nome da empresa na 1ª aparição
+            if ativos_identificados:
+                badges_ativos = "".join(
+                    f'<span class="badge">🏢 {ativo}</span>'
+                    for ativo in ativos_identificados
+                )
+                st.markdown(
+                    f'<div class="selecao-ativa" style="margin-bottom: 1.2rem;">'
+                    f'<span class="sel-label">Ativos no Ranking:</span>'
+                    f'<div class="hero-badges" style="margin-top: 0;">{badges_ativos}</div>'
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+
+            st.markdown("### 📋 Relatório Executivo de Alocação — Comitê de Investimentos (CIO)")
 
             # Relatório principal dentro do container estilizado
             st.markdown(
